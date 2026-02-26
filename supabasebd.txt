@@ -1,0 +1,3 @@
+annon public: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrbXZuZ3N6cWd1dXl6cGppa3ZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMTE3NDksImV4cCI6MjA4NzY4Nzc0OX0.8DfnP4bhk0e8EihjAGXM9yll_pnrfIWyZp0hjNQbCJI
+
+url:https://hkmvngszqguuyzpjikvj.supabase.co

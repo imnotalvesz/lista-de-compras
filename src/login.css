@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 :root {
-    --cor-primaria-1: #C2D3CD;
-    --cor-primaria-2: #AFBFC0;
-    --cor-primaria-3: #9FA4A9;
-    --cor-primaria-4: #CBF0E3;
-    --cor-bg: #7C8289;
+    --cor-primaria-1: #361134;
+    --cor-primaria-2: #B0228C;
+    --cor-primaria-3: #EA3788;
+    --cor-primaria-4: #E56B70;
+    --cor-bg: #F391A0;
 
     --cor-branco: #fff;
     --cor-preto: #1d1d1d;
@@ -15,8 +15,7 @@
     --fonte: "Poppins", sans-serif;
 
     --raio: 12px;
-    --trasinton: 0.3s ease;
-
+    --transition: 0.3s ease;
 
 }
 
@@ -27,10 +26,9 @@
 }
 
 body {
-    font-family: var (--fonte);
-    background: #3F5EFB;
-    background: radial-gradient(circle, rgba(63, 94, 251, 1) 0%,
-            rgb(23, 65, 112) 100%);
+    font-family: var(--fonte);
+    background: #EA3788;
+    background: linear-gradient(90deg, rgba(234, 55, 136, 1) 0%, rgba(229, 107, 112, 1) 50%, rgba(243, 145, 160, 1) 100%);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -38,9 +36,10 @@ body {
     padding: 20px;
 }
 
+
 .container {
     background: var(--cor-branco);
-    padding: clamp(2rem, 5vm, 3rem);
+    padding: clamp(2rem, 5vw, 3rem);
     border-radius: var(--raio);
     box-shadow: 0 8px 24px var(--cor-sombra);
     width: 100%;
@@ -51,7 +50,7 @@ body {
 .titulo {
     font-size: clamp(1.5rem, 2vw + 1rem, 2rem);
     color: var(--cor-texto);
-    margin-bottom: 1.5rem css;
+    margin-bottom: 1.5rem;
     font-weight: 500;
 }
 
@@ -62,13 +61,13 @@ input {
     border: 1px solid var(--cor-preto);
     border-radius: var(--raio);
     font-size: 1rem;
-    transition: var(--trasinton);
+    transition: var(--transition);
 }
 
 input.focus {
     border-color: var(--cor-primaria-1);
     outline: none;
-    box-shadow: 0 0 0 3px rgb(2, 87, 121);
+    box-shadow: 0 0 0 3px rgba(181, 1, 181, 0.25);
 }
 
 .botoes {
@@ -87,20 +86,19 @@ button {
     background-color: var(--cor-primaria-2);
     color: var(--cor-branco);
     cursor: pointer;
-    transition: var(--trasinton);
+    transition: var(--transition);
 }
 
 button.hover {
     background-color: var(--cor-primaria-1);
 }
 
-@media(max-width:360px) {
+@media (max-width:360px) {
     .container {
         padding: 1.5rem;
     }
 
-    input,
-    button {
+    input, button {
         font-size: 0.95rem;
     }
 }

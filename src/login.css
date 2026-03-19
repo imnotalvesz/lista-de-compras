@@ -29,15 +29,16 @@
 body {
     font-family: var (--fonte);
     background: #3F5EFB;
-background: radial-gradient(circle,rgba(63, 94, 251, 1) 0%,
- rgb(23, 65, 112) 100%);
+    background: radial-gradient(circle, rgba(63, 94, 251, 1) 0%,
+            rgb(23, 65, 112) 100%);
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     padding: 20px;
 }
-.container{
+
+.container {
     background: var(--cor-branco);
     padding: clamp(2rem, 5vm, 3rem);
     border-radius: var(--raio);
@@ -47,14 +48,14 @@ background: radial-gradient(circle,rgba(63, 94, 251, 1) 0%,
     text-align: center;
 }
 
-.titulo{
+.titulo {
     font-size: clamp(1.5rem, 2vw + 1rem, 2rem);
     color: var(--cor-texto);
     margin-bottom: 1.5rem css;
     font-weight: 500;
 }
 
-input{
+input {
     width: 100%;
     padding: 14px;
     margin: 10px 0;
@@ -64,20 +65,20 @@ input{
     transition: var(--trasinton);
 }
 
-input.focus{
+input.focus {
     border-color: var(--cor-primaria-1);
     outline: none;
     box-shadow: 0 0 0 3px rgb(2, 87, 121);
 }
 
-.botoes{
+.botoes {
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-top: 20px;
 }
 
-button{
+button {
     padding: 12px;
     font-size: 1rem;
     font-weight: 500;
@@ -89,16 +90,17 @@ button{
     transition: var(--trasinton);
 }
 
-button.hover{
+button.hover {
     background-color: var(--cor-primaria-1);
 }
 
-@media(max-width:360px){
-    .container{
+@media(max-width:360px) {
+    .container {
         padding: 1.5rem;
     }
 
-    input, button{
+    input,
+    button {
         font-size: 0.95rem;
     }
 }

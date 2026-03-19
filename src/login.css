@@ -1,18 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 :root {
-    --cor-primaria-1:#7e80f0;
-    --cor-primaria-2:#427c7c;
-    --cor-primaria-3:#3b82a3;
-    --cor-primaria-4:#28383f;
-    --cor-bg:#52a3ad;
+    --cor-primaria-1: #7e80f0;
+    --cor-primaria-2: #427c7c;
+    --cor-primaria-3: #3b82a3;
+    --cor-primaria-4: #28383f;
+    --cor-bg: #52a3ad;
 
     --cor-branco: #fff;
     --cor-preto: #1d1d1d;
-    --cor-sombra:rgba(0,0,0,0.15);
-    --cor-texto:#333;
+    --cor-sombra: rgba(0, 0, 0, 0.15);
+    --cor-texto: #333;
 
-    --fonte:"Poppins", sans-serif;
+    --fonte: "Poppins", sans-serif;
 
     --raio: 12pix;
     --trasinton: 0.3s ease;
@@ -40,9 +40,10 @@ button {
 }
 
 body {
-    font-family: var(--fonte);
-    background: #EA3788;
-    background: linear-gradient(90deg, rgba(234, 55, 136, 1) 0%, rgba(229, 107, 112, 1) 50%, rgba(243, 145, 160, 1) 100%);
+    font-family: var (--fonte);
+    background: #3F5EFB;
+    background: radial-gradient(circle, rgb(20, 116, 119) 0%,
+            rgb(79, 84, 150) 100%);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -112,7 +113,8 @@ button.hover {
         padding: 1.5rem;
     }
 
-    input, button {
+    input,
+    button {
         font-size: 0.95rem;
     }
 }

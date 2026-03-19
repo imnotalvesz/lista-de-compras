@@ -1,22 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 :root {
-    --cor-primaria-1: #361134;
-    --cor-primaria-2: #B0228C;
-    --cor-primaria-3: #EA3788;
-    --cor-primaria-4: #E56B70;
-    --cor-bg: #F391A0;
+    --cor-primaria-1:#7e80f0;
+    --cor-primaria-2:#427c7c;
+    --cor-primaria-3:#3b82a3;
+    --cor-primaria-4:#28383f;
+    --cor-bg:#52a3ad;
 
     --cor-branco: #fff;
     --cor-preto: #1d1d1d;
-    --cor-sombra: rgba(0, 0, 0, 0.15);
-    --cor-texto: #333;
+    --cor-sombra:rgba(0,0,0,0.15);
+    --cor-texto:#333;
 
-    --fonte: "Poppins", sans-serif;
+    --fonte:"Poppins", sans-serif;
 
-    border-color: var(--cor-primaria-1);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(181, 1, 181, 0.25);
+    --raio: 12pix;
+    --trasinton: 0.3s ease;
+
+
 }
 
 .botoes {

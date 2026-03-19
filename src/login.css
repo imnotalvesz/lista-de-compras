@@ -14,6 +14,19 @@
 
     --fonte: "Poppins", sans-serif;
 
+    border-color: var(--cor-primaria-1);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(181, 1, 181, 0.25);
+}
+
+.botoes {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+button {
     --raio: 12px;
     --transition: 0.3s ease;
 

@@ -50,7 +50,7 @@ background: radial-gradient(circle,rgba(63, 94, 251, 1) 0%,
 .titulo{
     font-size: clamp(1.5rem, 2vw + 1rem, 2rem);
     color: var(--cor-texto);
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.5rem css;
     font-weight: 500;
 }
 

@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --cor-primaria-1: #361134;
-    --cor-primaria-2: #B0228C;
-    --cor-primaria-3: #EA3788;
-    --cor-primaria-4: #E56B70;
-    --cor-bg: #F391A0;
+    --cor-primaria-1: #157474;
+    --cor-primaria-2: #89b5da;
+    --cor-primaria-3: #67d1e4;
+    --cor-primaria-4: #77cfe6;
+    --cor-bg: #77c2cc;
 
     --cor-branco: #fff;
     --cor-preto: #1d1d1d;
@@ -27,7 +27,7 @@
 
 body {
     font-family: var(--fonte);
-    background: linear-gradient(145deg, #EA3788 0%, #E56B70 50%, #F391A0 100%);
+    background: linear-gradient(145deg, #8fe6e6 0%, #7ba7e0 50%, #72b6c7 100%);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -48,7 +48,7 @@ body {
     -webkit-backdrop-filter: blur(12px);
     border-radius: 32px;
     padding: 2.5rem 2rem;
-    box-shadow: 0 25px 40px -10px rgba(54, 17, 52, 0.4),
+    box-shadow: 0 25px 40px -10px rgba(35, 112, 117, 0.4),
                 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
     border: 1px solid rgba(255, 255, 255, 0.3);
     text-align: center;
@@ -60,7 +60,7 @@ body {
     height: 90px;
     object-fit: cover;
     border-radius: 24px;
-    box-shadow: 0 15px 25px -8px rgba(54, 17, 52, 0.3);
+    box-shadow: 0 15px 25px -8px rgba(113, 120, 177, 0.3);
     margin-bottom: 1.5rem;
     border: 2px solid rgba(255, 255, 255, 0.8);
 }
@@ -121,7 +121,7 @@ body {
 .input-group input:focus {
     background: rgba(255, 255, 255, 1);
     border-color: var(--cor-primaria-2);
-    box-shadow: 0 8px 20px rgba(176, 34, 140, 0.15), 0 0 0 3px rgba(176, 34, 140, 0.1);
+    box-shadow: 0 8px 20px rgba(28, 204, 204, 0.15), 0 0 0 3px rgba(176, 34, 140, 0.1);
 }
 
 .input-group input::placeholder {
@@ -149,7 +149,7 @@ body {
     font-family: var(--fonte);
     cursor: pointer;
     transition: var(--transition);
-    box-shadow: 0 8px 20px rgba(54, 17, 52, 0.3);
+    box-shadow: 0 8px 20px rgba(50, 156, 156, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     letter-spacing: 0.3px;
 }
@@ -157,12 +157,12 @@ body {
 .btn-primary:hover {
     background: var(--cor-primaria-2);
     transform: scale(1.02);
-    box-shadow: 0 12px 25px rgba(176, 34, 140, 0.4);
+    box-shadow: 0 12px 25px rgba(109, 194, 219, 0.4);
 }
 
 .btn-primary:active {
     transform: scale(0.98);
-    box-shadow: 0 4px 10px rgba(54, 17, 52, 0.3);
+    box-shadow: 0 4px 10px rgba(50, 127, 141, 0.3);
 }
 
 .btn-secondary {
@@ -180,7 +180,7 @@ body {
 }
 
 .btn-secondary:hover {
-    background: rgba(54, 17, 52, 0.05);
+    background: rgba(24, 134, 120, 0.05);
     border-color: var(--cor-primaria-2);
     color: var(--cor-primaria-2);
 }

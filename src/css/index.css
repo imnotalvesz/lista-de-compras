@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 :root {
-    --cor-primaria-1: #361134;
-    --cor-primaria-2: #B0228C;
-    --cor-primaria-3: #EA3788;
-    --cor-primaria-4: #E56B70;
-    --cor-bg: #F391A0;
+    --cor-primaria-1: #2950a3;
+    --cor-primaria-2: #95e7d5;
+    --cor-primaria-3: #1aa9e2;
+    --cor-primaria-4: #b5eedb;
+    --cor-bg: #44a6be;
 
     --cor-branco: #fff;
     --cor-preto: #1d1d1d;
@@ -27,8 +27,8 @@
 
 body {
     font-family: var(--fonte);
-    background: #EA3788;
-    background: linear-gradient(90deg, rgba(234, 55, 136, 1) 0%, rgba(229, 107, 112, 1) 50%, rgba(243, 145, 160, 1) 100%);
+    background: #737ddd;
+    background: linear-gradient(90deg, rgb(145, 203, 250) 0%, rgb(92, 160, 216) 50%, rgb(152, 228, 215) 100%);
     display: flex;
     justify-content: center;
     align-items: center;

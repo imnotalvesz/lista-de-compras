@@ -1,5 +1,5 @@
 {
-    "name": "Lista de Compras",
+    "name": "lista-de-compras",
     "short_name": "ListaCompras",
     "description": "Aplicativo de lista de Compras",
     "start_url": "/",

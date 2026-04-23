@@ -3,21 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="src/login.css">
+    <title>Lista 2026 · Login</title>
+    <link rel="shortcut icon" href="src/img/favicon.ico" type="image/x-icon">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="src/css/login.css">
 </head>
 <body>
-    <div class="container">
-        <h2 class="titulo">Login</h2>
-        <input type="email" id="email" placeholder="E-mail">
-        <input type="password" id="senha" placeholder="Senha">
-        
-        <div class="botoes">
-            <button onclick="login()">Entrar</button>
-            <button onclick="cadastro()">Cadastrar</button>
+    <div class="login-container">
+        <div class="login-card">
+            <img src="src/icons/icon-512x512.png" alt="Logo App Lista" class="app-logo">
+            
+            <div class="text-header">
+                <h1 class="app-title">Lista 2026</h1>
+                <p class="app-subtitle">Organize suas compras em equipe</p>
+            </div>
+
+            <form id="login-form" onsubmit="event.preventDefault(); login();">
+                <div class="input-group">
+                    <span class="input-icon">📧</span>
+                    <input type="email" id="email" placeholder="seu@email.com" autocomplete="email" required>
+                </div>
+                
+                <div class="input-group">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="senha" placeholder="Senha" autocomplete="current-password" required>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="btn-primary">Entrar</button>
+                    <button type="button" class="btn-secondary" onclick="cadastro()">Criar conta gratuita</button>
+                </div>
+            </form>
+            
+            <p class="legal-note">Ao entrar, você concorda com nossos termos.</p>
         </div>
     </div>
 
     <script type="module" src="auth.js"></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => console.log('SW registrado'))
+                    .catch(error => console.log('Falha no SW', error));
+            });
+        }
+    </script>
 </body>
 </html>

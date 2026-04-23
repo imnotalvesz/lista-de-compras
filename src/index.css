@@ -1,38 +1,144 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 :root {
-    --cor-primaria-1:#7e80f0;
-    --cor-primaria-2:#427c7c;
-    --cor-primaria-3:#3b82a3;
-    --cor-primaria-4:#28383f;
-    --cor-bg:#52a3ad;
+    --cor-primaria-1: #361134;
+    --cor-primaria-2: #B0228C;
+    --cor-primaria-3: #EA3788;
+    --cor-primaria-4: #E56B70;
+    --cor-bg: #F391A0;
 
     --cor-branco: #fff;
     --cor-preto: #1d1d1d;
-    --cor-sombra:rgba(0,0,0,0.15);
-    --cor-texto:#333;
+    --cor-sombra: rgba(0, 0, 0, 0.15);
+    --cor-texto: #333;
 
-    --fonte:"Poppins", sans-serif;
+    --fonte: "Poppins", sans-serif;
 
-    --raio: 12pix;
-    --trasinton: 0.3s ease;
-
+    --raio: 12px;
+    --transition: 0.3s ease;
 
 }
-*{
+
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-body{
-    font-family: var (--fonte);
-     background: #3F5EFB;
-background: radial-gradient(circle,rgb(20, 116, 119) 0%,
- rgb(79, 84, 150) 100%);
+body {
+    font-family: var(--fonte);
+    background: #EA3788;
+    background: linear-gradient(90deg, rgba(234, 55, 136, 1) 0%, rgba(229, 107, 112, 1) 50%, rgba(243, 145, 160, 1) 100%);
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     padding: 20px;
 }
+
+
+.container {
+    background: var(--cor-branco);
+    padding: clamp(2rem, 5vw, 3rem);
+    border-radius: var(--raio);
+    box-shadow: 0 8px 24px var(--cor-sombra);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+#logo {
+    width: 150px;
+    height: auto;
+    margin-bottom: 20px;
+    border-radius: var(--raio);
+}
+
+.titulo {
+    font-size: clamp(1.5rem, 2vw + 1rem, 2rem);
+    color: var(--cor-texto);
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+button[onclick="logout()"] {
+    align-self: flex-end;
+    margin-bottom: 1.5rem;
+    background-color: var(--cor-primaria-1);
+    color: var(--cor-branco);
+    padding: 10px 16px;
+    border: none;
+    border-radius: var(--raio);
+    cursor: pointer;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+button[onclick="logout()"]:hover {
+background-color: var(--cor-primaria-2);
+}
+
+#lista {
+    width: 100%;
+    max-width: 600px;
+    list-style: none;
+    margin-bottom: 2rem;
+    padding: 0;
+}
+
+#lista li {
+    background-color: var(--cor-branco);
+    border: 1px solid var(--cor-texto);
+    border-radius: var(--raio);
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px var(--cor-texto);
+    margin-bottom: 1rem;
+}
+
+#lista button {
+    background-color: var(--cor-primaria-1);
+    color: var(--cor-branco);
+    border: none;
+    border-radius: var(--raio);
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+#item {
+    width: 100%;
+    max-width: 400px;
+    padding: 14px;
+    margin-bottom: 12px;
+    border: 1px solid var(--cor-texto);
+    border-radius: var(--raio);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+#item:focus {
+    border: 1px solid var(--cor-primaria-1);
+    outline: none;
+    box-shadow: 0 2px 6px var(--cor-texto);
+}
+
+button[onclick="adicionarItem()"] {
+    padding: 12px 20px;
+    background-color: var(--cor-primaria-1);
+    color: var(--cor-branco);
+    border: none;
+    border-radius: var(--raio);
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+button[onclick="adicionarItem()"]:hover {
+    background-color: var(--cor-primaria-2);
+}
+

@@ -5,11 +5,17 @@
 import { getSessaoAtiva, logout } from './auth.js';
 
 const STORAGE_KEY = 'lista2026_items';
+const LISTS_KEY = 'lista2026_multiplas_listas';
+const HISTORY_KEY = 'lista2026_historico';
+const SUGGESTIONS_KEY = 'lista2026_sugestoes';
 
 let currentUser = null;
+let currentListId = 'default';
+let lists = {};
 let items = [];
 let currentFilter = 'todos';
 let darkMode = localStorage.getItem('darkMode') === 'true';
+let currentBudget = 0;
 
 // ============================================
 // UTILITÁRIOS
@@ -39,48 +45,393 @@ function exibirToast(mensagem, tipo = 'success') {
 function mostrarLoading(mostrar) {
     const overlay = document.getElementById('loading-overlay');
     if (overlay) {
-        if (mostrar) {
-            overlay.classList.remove('hidden');
-        } else {
-            overlay.classList.add('hidden');
-        }
+        if (mostrar) overlay.classList.remove('hidden');
+        else overlay.classList.add('hidden');
     }
 }
 
-function salvarItems() {
+function salvarTudo() {
     if (!currentUser) return;
     
     const allData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    allData[currentUser.id] = items;
+    allData[currentUser.id] = { lists, currentListId };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
-    
-    console.log('Itens salvos:', items.length);
 }
 
-function carregarItems() {
-    if (!currentUser) return [];
+function carregarTudo() {
+    if (!currentUser) return;
     
     const allData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    items = allData[currentUser.id] || [];
-    console.log('Itens carregados:', items.length);
-    return items;
+    const userData = allData[currentUser.id] || { lists: {}, currentListId: 'default' };
+    
+    lists = userData.lists || {};
+    currentListId = userData.currentListId || 'default';
+    
+    // Inicializar lista padrão se não existir
+    if (!lists['default']) {
+        lists['default'] = {
+            id: 'default',
+            nome: 'Minha lista principal',
+            itens: [],
+            budget: 0,
+            criadaEm: new Date().toISOString()
+        };
+    }
+    
+    items = lists[currentListId]?.itens || [];
+    currentBudget = lists[currentListId]?.budget || 0;
+    
+    // Carregar orçamento
+    const budgetInput = document.getElementById('budget-input');
+    if (budgetInput) budgetInput.value = currentBudget || '';
+}
+
+function salvarListaAtual() {
+    if (!lists[currentListId]) return;
+    lists[currentListId].itens = items;
+    lists[currentListId].budget = currentBudget;
+    salvarTudo();
 }
 
 // ============================================
-// FUNÇÕES DA LISTA
+// HISTÓRICO
+// ============================================
+
+function salvarNoHistorico() {
+    if (items.length === 0) {
+        exibirToast('Lista vazia, nada para salvar', 'error');
+        return;
+    }
+    
+    const historico = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    
+    const listaHistorico = {
+        id: Date.now(),
+        nome: `Lista ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`,
+        itens: JSON.parse(JSON.stringify(items)),
+        total: calcularTotalGasto(),
+        criadaEm: new Date().toISOString()
+    };
+    
+    historico.unshift(listaHistorico);
+    
+    // Manter apenas últimos 50 históricos
+    if (historico.length > 50) historico.pop();
+    
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(historico));
+    exibirToast('Lista salva no histórico!', 'success');
+}
+
+function carregarDoHistorico(historicoId) {
+    const historico = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    const listaSalva = historico.find(h => h.id === parseInt(historicoId));
+    
+    if (listaSalva) {
+        items = JSON.parse(JSON.stringify(listaSalva.itens));
+        salvarListaAtual();
+        renderizarLista();
+        exibirToast('Lista carregada do histórico!', 'success');
+        fecharModalHistorico();
+    }
+}
+
+function removerDoHistorico(historicoId) {
+    let historico = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    historico = historico.filter(h => h.id !== parseInt(historicoId));
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(historico));
+    exibirToast('Item removido do histórico', 'success');
+    renderizarModalHistorico();
+}
+
+function renderizarModalHistorico() {
+    const historico = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    const container = document.getElementById('historico-listas');
+    const emptyDiv = document.getElementById('historico-empty');
+    
+    if (!container) return;
+    
+    if (historico.length === 0) {
+        if (emptyDiv) emptyDiv.classList.remove('hidden');
+        container.innerHTML = '';
+        return;
+    }
+    
+    if (emptyDiv) emptyDiv.classList.add('hidden');
+    
+    container.innerHTML = historico.map(item => `
+        <div class="historico-item">
+            <div class="historico-info">
+                <h4>${escapeHtml(item.nome)}</h4>
+                <p>${item.itens.length} itens | Total: R$ ${item.total.toFixed(2)}</p>
+                <small>${new Date(item.criadaEm).toLocaleString()}</small>
+            </div>
+            <div class="historico-actions">
+                <button class="btn-reutilizar" onclick="window.carregarDoHistorico(${item.id})">↺ Reutilizar</button>
+                <button class="btn-remover" onclick="window.removerDoHistorico(${item.id})">🗑 Remover</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function abrirModalHistorico() {
+    const modal = document.getElementById('modal-historico');
+    if (modal) {
+        renderizarModalHistorico();
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function fecharModalHistorico() {
+    const modal = document.getElementById('modal-historico');
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+}
+
+// ============================================
+// GERENCIAR LISTAS MÚLTIPLAS
+// ============================================
+
+function renderizarListasManager() {
+    const container = document.getElementById('listas-container');
+    if (!container) return;
+    
+    const listasArray = Object.entries(lists).map(([id, lista]) => ({
+        id,
+        ...lista
+    }));
+    
+    container.innerHTML = listasArray.map(lista => `
+        <div class="lista-item ${lista.id === currentListId ? 'active' : ''}">
+            <div class="lista-info">
+                <strong>${escapeHtml(lista.nome)}</strong>
+                <small>${lista.itens?.length || 0} itens | ${lista.budget ? `R$ ${lista.budget}` : 'Sem orçamento'}</small>
+            </div>
+            <div class="lista-actions">
+                <button onclick="window.switchLista('${lista.id}')" title="Selecionar">✓</button>
+                ${lista.id !== 'default' ? `<button onclick="window.deletarLista('${lista.id}')" title="Excluir">🗑</button>` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+function abrirModalListas() {
+    const modal = document.getElementById('modal-listas');
+    if (modal) {
+        renderizarListasManager();
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function fecharModalListas() {
+    const modal = document.getElementById('modal-listas');
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+}
+
+function criarNovaLista() {
+    const nome = prompt('Digite o nome da nova lista:');
+    if (!nome) return;
+    
+    const newId = 'lista_' + Date.now();
+    lists[newId] = {
+        id: newId,
+        nome: nome,
+        itens: [],
+        budget: 0,
+        criadaEm: new Date().toISOString()
+    };
+    
+    salvarTudo();
+    atualizarSelectorListas();
+    exibirToast(`Lista "${nome}" criada!`, 'success');
+}
+
+function switchLista(listaId) {
+    if (!lists[listaId]) return;
+    
+    // Salvar lista atual
+    lists[currentListId].itens = items;
+    lists[currentListId].budget = currentBudget;
+    
+    // Mudar para nova lista
+    currentListId = listaId;
+    items = lists[currentListId].itens || [];
+    currentBudget = lists[currentListId].budget || 0;
+    
+    salvarTudo();
+    atualizarSelectorListas();
+    
+    // Atualizar UI
+    const budgetInput = document.getElementById('budget-input');
+    if (budgetInput) budgetInput.value = currentBudget || '';
+    
+    renderizarLista();
+    atualizarOrcamentoUI();
+    exibirToast(`Mudou para "${lists[currentListId].nome}"`, 'success');
+    
+    fecharModalListas();
+}
+
+function deletarLista(listaId) {
+    if (listaId === 'default') {
+        exibirToast('Não é possível deletar a lista principal', 'error');
+        return;
+    }
+    
+    if (confirm(`Tem certeza que deseja deletar "${lists[listaId]?.nome}"?`)) {
+        delete lists[listaId];
+        
+        if (currentListId === listaId) {
+            currentListId = 'default';
+            items = lists['default'].itens || [];
+            currentBudget = lists['default'].budget || 0;
+        }
+        
+        salvarTudo();
+        atualizarSelectorListas();
+        renderizarLista();
+        exibirToast('Lista deletada', 'success');
+        fecharModalListas();
+    }
+}
+
+function atualizarSelectorListas() {
+    const selector = document.getElementById('lista-select');
+    if (!selector) return;
+    
+    selector.innerHTML = Object.entries(lists).map(([id, lista]) => `
+        <option value="${id}" ${id === currentListId ? 'selected' : ''}>
+            ${escapeHtml(lista.nome)} (${lista.itens?.length || 0} itens)
+        </option>
+    `).join('');
+}
+
+// ============================================
+// SUGESTÕES INTELIGENTES
+// ============================================
+
+function salvarSugestao(item) {
+    const sugestoes = JSON.parse(localStorage.getItem(SUGGESTIONS_KEY) || '[]');
+    
+    const existing = sugestoes.find(s => s.nome.toLowerCase() === item.nome.toLowerCase());
+    if (existing) {
+        existing.vezes++;
+        existing.ultimoUso = Date.now();
+    } else {
+        sugestoes.push({
+            nome: item.nome,
+            categoria: item.categoria,
+            vezes: 1,
+            ultimoUso: Date.now()
+        });
+    }
+    
+    // Ordenar por frequência de uso e manter top 20
+    sugestoes.sort((a, b) => b.vezes - a.vezes);
+    if (sugestoes.length > 20) sugestoes.pop();
+    
+    localStorage.setItem(SUGGESTIONS_KEY, JSON.stringify(sugestoes));
+    atualizarSugestoes();
+}
+
+function atualizarSugestoes() {
+    const sugestoes = JSON.parse(localStorage.getItem(SUGGESTIONS_KEY) || '[]');
+    const datalist = document.getElementById('sugestoes');
+    
+    if (datalist) {
+        datalist.innerHTML = sugestoes.map(s => `
+            <option value="${escapeHtml(s.nome)}">
+        `).join('');
+    }
+}
+
+// ============================================
+// ORÇAMENTO
+// ============================================
+
+function calcularTotalGasto() {
+    return items.reduce((total, item) => {
+        const preco = item.preco || 0;
+        const quantidade = item.quantidade || 1;
+        return total + (preco * quantidade);
+    }, 0);
+}
+
+function definirOrcamento() {
+    const input = document.getElementById('budget-input');
+    let valor = parseFloat(input.value);
+    
+    if (isNaN(valor) || valor <= 0) {
+        currentBudget = 0;
+        exibirToast('Orçamento removido', 'info');
+    } else {
+        currentBudget = valor;
+        exibirToast(`Orçamento definido: R$ ${currentBudget.toFixed(2)}`, 'success');
+    }
+    
+    salvarListaAtual();
+    atualizarOrcamentoUI();
+}
+
+function atualizarOrcamentoUI() {
+    const total = calcularTotalGasto();
+    const progressDiv = document.getElementById('budget-progress');
+    const spentSpan = document.getElementById('budget-spent');
+    const limitSpan = document.getElementById('budget-limit');
+    const percentSpan = document.getElementById('budget-percent');
+    const progressFill = document.getElementById('progress-fill');
+    
+    if (currentBudget > 0) {
+        if (progressDiv) progressDiv.classList.remove('hidden');
+        
+        const percent = Math.min((total / currentBudget) * 100, 100);
+        const percentDisplay = Math.round(percent);
+        
+        if (spentSpan) spentSpan.textContent = `R$ ${total.toFixed(2)}`;
+        if (limitSpan) limitSpan.textContent = `R$ ${currentBudget.toFixed(2)}`;
+        if (percentSpan) percentSpan.textContent = percentDisplay;
+        
+        if (progressFill) {
+            progressFill.style.width = `${percent}%`;
+            if (total > currentBudget) {
+                progressFill.classList.add('over-budget');
+                if (percentSpan) percentSpan.style.color = '#E53E3E';
+            } else {
+                progressFill.classList.remove('over-budget');
+                if (percentSpan) percentSpan.style.color = '';
+            }
+        }
+        
+        if (total > currentBudget) {
+            exibirToast('⚠️ Atenção: você ultrapassou seu orçamento!', 'error');
+        }
+    } else {
+        if (progressDiv) progressDiv.classList.add('hidden');
+    }
+}
+
+// ============================================
+// FUNÇÕES DA LISTA (ENHANCED)
 // ============================================
 
 function adicionarItem() {
     const nomeInput = document.getElementById('item-nome');
     const categoriaSelect = document.getElementById('item-categoria');
-    
-    if (!nomeInput || !categoriaSelect) {
-        console.error('Elementos não encontrados');
-        return;
-    }
+    const quantidadeInput = document.getElementById('item-quantidade');
+    const unidadeSelect = document.getElementById('item-unidade');
+    const precoInput = document.getElementById('item-preco');
     
     const nome = nomeInput.value.trim();
     const categoria = categoriaSelect.value;
+    const quantidade = parseFloat(quantidadeInput.value) || 1;
+    const unidade = unidadeSelect.value;
+    const preco = parseFloat(precoInput.value) || 0;
     
     if (!nome) {
         exibirToast('Digite o nome do item', 'error');
@@ -91,30 +442,39 @@ function adicionarItem() {
         id: Date.now(),
         nome: nome,
         categoria: categoria,
+        quantidade: quantidade,
+        unidade: unidade,
+        preco: preco,
         concluido: false,
         ordem: items.length,
         criadoEm: new Date().toISOString()
     };
     
     items.push(novoItem);
-    salvarItems();
+    salvarListaAtual();
+    salvarSugestao(novoItem);
     
     nomeInput.value = '';
+    quantidadeInput.value = '1';
+    unidadeSelect.value = 'un';
+    precoInput.value = '';
     nomeInput.focus();
     
     exibirToast(`"${nome}" adicionado à lista!`, 'success');
     renderizarLista();
+    atualizarOrcamentoUI();
 }
 
 function toggleItem(id) {
     const item = items.find(i => i.id === parseInt(id));
     if (item) {
         item.concluido = !item.concluido;
-        salvarItems();
+        salvarListaAtual();
         
         const mensagem = item.concluido ? 'Item concluído! 🎉' : 'Item reaberto';
         exibirToast(mensagem, 'info');
         renderizarLista();
+        atualizarOrcamentoUI();
     }
 }
 
@@ -124,11 +484,11 @@ function deletarItem(id) {
     
     if (confirm(`Remover "${item.nome}" da lista?`)) {
         items = items.filter(i => i.id !== parseInt(id));
-        // Reordenar os itens restantes
         items.forEach((item, idx) => { item.ordem = idx; });
-        salvarItems();
+        salvarListaAtual();
         exibirToast('Item removido', 'success');
         renderizarLista();
+        atualizarOrcamentoUI();
     }
 }
 
@@ -141,287 +501,4 @@ function limparConcluidos() {
     
     if (confirm(`Remover ${concluidos.length} item(ns) concluído(s)?`)) {
         items = items.filter(i => !i.concluido);
-        // Reordenar os itens restantes
-        items.forEach((item, idx) => { item.ordem = idx; });
-        salvarItems();
-        exibirToast(`${concluidos.length} item(ns) removido(s)`, 'success');
-        renderizarLista();
-    }
-}
-
-function atualizarEstatisticas() {
-    const total = items.length;
-    const pendentes = items.filter(i => !i.concluido).length;
-    const concluidos = items.filter(i => i.concluido).length;
-    
-    const totalEl = document.getElementById('total-itens');
-    const pendentesEl = document.getElementById('itens-pendentes');
-    const concluidosEl = document.getElementById('itens-concluidos');
-    
-    if (totalEl) totalEl.textContent = total;
-    if (pendentesEl) pendentesEl.textContent = pendentes;
-    if (concluidosEl) concluidosEl.textContent = concluidos;
-}
-
-function getIconCategoria(categoria) {
-    const icons = {
-        alimentos: '🍎',
-        limpeza: '🧹',
-        higiene: '🧴',
-        bebidas: '🥤',
-        outros: '📦'
-    };
-    return icons[categoria] || '📦';
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function renderizarLista() {
-    const listaUl = document.getElementById('lista');
-    const emptyState = document.getElementById('empty-state');
-    
-    if (!listaUl || !emptyState) return;
-    
-    let itemsFiltrados = [...items];
-    if (currentFilter !== 'todos') {
-        itemsFiltrados = items.filter(i => i.categoria === currentFilter);
-    }
-    
-    // Ordenar: pendentes primeiro, depois por ordem
-    itemsFiltrados.sort((a, b) => {
-        if (a.concluido !== b.concluido) return a.concluido ? 1 : -1;
-        return (a.ordem || 0) - (b.ordem || 0);
-    });
-    
-    if (itemsFiltrados.length === 0) {
-        listaUl.innerHTML = '';
-        emptyState.classList.remove('hidden');
-        atualizarEstatisticas();
-        return;
-    }
-    
-    emptyState.classList.add('hidden');
-    
-    listaUl.innerHTML = itemsFiltrados.map(item => `
-        <li class="list-item" data-id="${item.id}" draggable="true">
-            <span class="drag-handle">⋮⋮</span>
-            <input type="checkbox" class="item-checkbox" ${item.concluido ? 'checked' : ''} onchange="window.toggleItem(${item.id})">
-            <div class="item-content">
-                <span class="item-nome ${item.concluido ? 'concluido' : ''}">
-                    ${getIconCategoria(item.categoria)} ${escapeHtml(item.nome)}
-                </span>
-                <span class="item-categoria categoria-${item.categoria}">
-                    ${item.categoria}
-                </span>
-            </div>
-            <div class="item-actions">
-                <button onclick="window.deletarItem(${item.id})" title="Remover">🗑️</button>
-            </div>
-        </li>
-    `).join('');
-    
-    atualizarEstatisticas();
-    adicionarDragAndDrop();
-}
-
-// ============================================
-// DRAG AND DROP
-// ============================================
-
-let draggedItemId = null;
-
-function adicionarDragAndDrop() {
-    const listItems = document.querySelectorAll('.list-item');
-    
-    listItems.forEach(item => {
-        item.removeEventListener('dragstart', handleDragStart);
-        item.removeEventListener('dragover', handleDragOver);
-        item.removeEventListener('drop', handleDrop);
-        item.removeEventListener('dragend', handleDragEnd);
-        
-        item.addEventListener('dragstart', handleDragStart);
-        item.addEventListener('dragover', handleDragOver);
-        item.addEventListener('drop', handleDrop);
-        item.addEventListener('dragend', handleDragEnd);
-    });
-}
-
-function handleDragStart(e) {
-    const target = e.target.closest('.list-item');
-    if (!target) return;
-    
-    draggedItemId = parseInt(target.dataset.id);
-    target.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-}
-
-function handleDragOver(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-}
-
-function handleDrop(e) {
-    e.preventDefault();
-    const targetItem = e.target.closest('.list-item');
-    if (!targetItem) return;
-    
-    const targetId = parseInt(targetItem.dataset.id);
-    if (draggedItemId === targetId) return;
-    
-    const draggedIndex = items.findIndex(i => i.id === draggedItemId);
-    const targetIndex = items.findIndex(i => i.id === targetId);
-    
-    if (draggedIndex === -1 || targetIndex === -1) return;
-    
-    const [draggedItem] = items.splice(draggedIndex, 1);
-    items.splice(targetIndex, 0, draggedItem);
-    
-    items.forEach((item, idx) => { item.ordem = idx; });
-    
-    salvarItems();
-    renderizarLista();
-    exibirToast('Ordem atualizada', 'success');
-}
-
-function handleDragEnd(e) {
-    const target = e.target.closest('.list-item');
-    if (target) target.classList.remove('dragging');
-    draggedItemId = null;
-}
-
-// ============================================
-// FILTROS E CATEGORIAS
-// ============================================
-
-function configurarFiltros() {
-    const filtros = document.querySelectorAll('.filter-chip');
-    filtros.forEach(filtro => {
-        filtro.addEventListener('click', () => {
-            filtros.forEach(f => f.classList.remove('active'));
-            filtro.classList.add('active');
-            currentFilter = filtro.dataset.categoria;
-            renderizarLista();
-        });
-    });
-}
-
-// ============================================
-// MODO ESCURO
-// ============================================
-
-function toggleDarkMode() {
-    darkMode = !darkMode;
-    localStorage.setItem('darkMode', darkMode);
-    
-    if (darkMode) {
-        document.body.setAttribute('data-theme', 'dark');
-        const btn = document.getElementById('btn-dark-mode');
-        if (btn) btn.textContent = '☀️';
-    } else {
-        document.body.removeAttribute('data-theme');
-        const btn = document.getElementById('btn-dark-mode');
-        if (btn) btn.textContent = '🌙';
-    }
-}
-
-function initDarkMode() {
-    if (darkMode) {
-        document.body.setAttribute('data-theme', 'dark');
-        const btn = document.getElementById('btn-dark-mode');
-        if (btn) btn.textContent = '☀️';
-    }
-}
-
-// ============================================
-// LOGOUT
-// ============================================
-
-function handleLogout() {
-    if (confirm('Tem certeza que deseja sair?')) {
-        logout();
-    }
-}
-
-// ============================================
-// INICIALIZAÇÃO
-// ============================================
-
-function init() {
-    console.log('Inicializando app...');
-    
-    // Verificar sessão
-    currentUser = getSessaoAtiva();
-    
-    if (!currentUser) {
-        console.log('Usuário não autenticado, redirecionando...');
-        window.location.href = 'login.html';
-        return;
-    }
-    
-    console.log('Usuário logado:', currentUser);
-    
-    // Exibir nome do usuário
-    const userNomeEl = document.getElementById('user-nome');
-    if (userNomeEl) {
-        userNomeEl.textContent = currentUser.isGuest ? 'Modo Demo 🎮' : `Olá, ${currentUser.nome}`;
-    }
-    
-    // Carregar dados
-    carregarItems();
-    
-    // Configurar eventos
-    const btnAdicionar = document.getElementById('btn-adicionar');
-    if (btnAdicionar) {
-        btnAdicionar.addEventListener('click', adicionarItem);
-    }
-    
-    const btnLimpar = document.getElementById('btn-limpar-concluidos');
-    if (btnLimpar) {
-        btnLimpar.addEventListener('click', limparConcluidos);
-    }
-    
-    const btnLogout = document.getElementById('btn-logout');
-    if (btnLogout) {
-        btnLogout.addEventListener('click', handleLogout);
-    }
-    
-    const btnDarkMode = document.getElementById('btn-dark-mode');
-    if (btnDarkMode) {
-        btnDarkMode.addEventListener('click', toggleDarkMode);
-    }
-    
-    const itemNomeInput = document.getElementById('item-nome');
-    if (itemNomeInput) {
-        itemNomeInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') adicionarItem();
-        });
-    }
-    
-    // Configurar filtros
-    configurarFiltros();
-    
-    // Inicializar modo escuro
-    initDarkMode();
-    
-    // Renderizar lista
-    renderizarLista();
-    
-    console.log('App inicializado com sucesso!');
-    
-    // Exportar funções globalmente
-    window.toggleItem = toggleItem;
-    window.deletarItem = deletarItem;
-    window.limparConcluidos = limparConcluidos;
-    window.adicionarItem = adicionarItem;
-}
-
-// Iniciar aplicação quando o DOM estiver pronto
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
-}
+        items.forEach

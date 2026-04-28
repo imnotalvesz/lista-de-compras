@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Lista 2026 · Minhas compras</title>
+    <title>Lista 2026 · Smart Shopping</title>
     <link rel="shortcut icon" href="src/img/favicon.ico" type="image/x-icon">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="src/css/index.css">
@@ -23,12 +23,9 @@
                     </div>
                 </div>
                 <div class="header-actions">
-                    <button id="btn-dark-mode" class="icon-btn" title="Modo escuro">
-                        🌙
-                    </button>
-                    <button id="btn-logout" class="icon-btn logout-btn" title="Sair">
-                        🚪
-                    </button>
+                    <button id="btn-dark-mode" class="icon-btn" title="Modo escuro">🌙</button>
+                    <button id="btn-history" class="icon-btn" title="Histórico">📜</button>
+                    <button id="btn-logout" class="icon-btn" title="Sair">🚪</button>
                 </div>
             </div>
         </header>
@@ -46,25 +43,86 @@
                     <span class="stat-label">pendentes</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-value" id="itens-concluidos">0</span>
-                    <span class="stat-label">concluídos</span>
+                    <span class="stat-value" id="total-gasto">R$ 0</span>
+                    <span class="stat-label">total estimado</span>
                 </div>
             </div>
 
-            <!-- ADD ITEM FORM -->
-            <div class="add-item-section">
-                <div class="input-row">
-                    <input type="text" id="item-nome" placeholder="Digite o item..." autocomplete="off">
-                    <select id="item-categoria">
-                        <option value="alimentos">🍎 Alimentos</option>
-                        <option value="limpeza">🧹 Limpeza</option>
-                        <option value="higiene">🧴 Higiene</option>
-                        <option value="bebidas">🥤 Bebidas</option>
-                        <option value="outros">📦 Outros</option>
+            <!-- BUDGET SECTION -->
+            <div class="budget-section">
+                <div class="budget-header">
+                    <label>💰 Orçamento desta lista:</label>
+                    <div class="budget-input-group">
+                        <span class="currency">R$</span>
+                        <input type="number" id="budget-input" placeholder="Limite" step="0.01" min="0">
+                        <button id="btn-set-budget" class="btn-small">Definir</button>
+                    </div>
+                </div>
+                <div class="budget-progress hidden" id="budget-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <p class="budget-info">
+                        <span id="budget-spent">R$ 0</span> de <span id="budget-limit">R$ 0</span>
+                        (<span id="budget-percent">0</span>%)
+                    </p>
+                </div>
+            </div>
+
+            <!-- LISTA ATUAL SELECTOR -->
+            <div class="list-selector">
+                <div class="list-selector-header">
+                    <label>📋 Lista atual:</label>
+                    <select id="lista-select">
+                        <option value="default">Minha lista principal</option>
                     </select>
-                    <button id="btn-adicionar" class="btn-primary">
-                        <span>+ Adicionar</span>
-                    </button>
+                    <button id="btn-nova-lista" class="btn-small" title="Nova lista">+ Nova</button>
+                    <button id="btn-gerenciar-listas" class="btn-small" title="Gerenciar listas">📋</button>
+                </div>
+            </div>
+
+            <!-- ADD ITEM FORM (ENHANCED) -->
+            <div class="add-item-section">
+                <h3>➕ Adicionar item</h3>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>Item</label>
+                        <input type="text" id="item-nome" placeholder="Digite o item..." autocomplete="off" list="sugestoes">
+                        <datalist id="sugestoes"></datalist>
+                    </div>
+                    <div class="input-group">
+                        <label>Categoria</label>
+                        <select id="item-categoria">
+                            <option value="alimentos">🍎 Alimentos</option>
+                            <option value="limpeza">🧹 Limpeza</option>
+                            <option value="higiene">🧴 Higiene</option>
+                            <option value="bebidas">🥤 Bebidas</option>
+                            <option value="outros">📦 Outros</option>
+                        </select>
+                    </div>
+                    <div class="input-group small">
+                        <label>Qtd</label>
+                        <input type="number" id="item-quantidade" value="1" min="0.25" step="0.25">
+                    </div>
+                    <div class="input-group small">
+                        <label>Unidade</label>
+                        <select id="item-unidade">
+                            <option value="un">un</option>
+                            <option value="kg">kg</option>
+                            <option value="g">g</option>
+                            <option value="l">l</option>
+                            <option value="ml">ml</option>
+                            <option value="pct">pct</option>
+                            <option value="cx">cx</option>
+                        </select>
+                    </div>
+                    <div class="input-group small">
+                        <label>Preço (R$)</label>
+                        <input type="number" id="item-preco" placeholder="0,00" step="0.01" min="0">
+                    </div>
+                    <div class="input-group button-group">
+                        <button id="btn-adicionar" class="btn-primary">+ Adicionar</button>
+                    </div>
                 </div>
             </div>
 
@@ -81,8 +139,11 @@
             <!-- ITEMS LIST -->
             <div class="list-container">
                 <div class="list-header">
-                    <h3>Sua lista de compras</h3>
-                    <button id="btn-limpar-concluidos" class="text-btn">Limpar concluídos</button>
+                    <h3>🛒 Itens da compra</h3>
+                    <div class="list-actions">
+                        <button id="btn-salvar-historico" class="text-btn">💾 Salvar no histórico</button>
+                        <button id="btn-limpar-concluidos" class="text-btn danger">🗑️ Limpar concluídos</button>
+                    </div>
                 </div>
                 <ul id="lista" class="items-list"></ul>
                 <div id="empty-state" class="empty-state hidden">
@@ -92,6 +153,36 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- MODAL HISTÓRICO -->
+    <div id="modal-historico" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>📜 Histórico de compras</h2>
+                <button class="modal-close" onclick="fecharModalHistorico()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="historico-listas" class="historico-grid"></div>
+                <div id="historico-empty" class="empty-state-small hidden">
+                    <p>Nenhuma lista salva no histórico</p>
+                    <button class="btn-small" onclick="fecharModalHistorico()">Voltar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GERENCIAR LISTAS -->
+    <div id="modal-listas" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📋 Gerenciar listas</h2>
+                <button class="modal-close" onclick="fecharModalListas()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="listas-container" class="listas-grid"></div>
+            </div>
+        </div>
     </div>
 
     <!-- TOAST NOTIFICATION -->

@@ -1,20 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Lista 2026 · Minhas compras</title>
     <link rel="shortcut icon" href="src/img/favicon.ico" type="image/x-icon">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="src/css/index.css">
-    <title>Lista 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
-    <div class="container">
-        <h2 class="titulo">Minha lista de compras</h2>
-        <button onclick="logout()">Sair</button>
-        <ul id="lista"></ul>
-        <input type="text" id="item" placeholder="Novo Item">
-        <button onclick="adicionarItem()">Adicionar</button>
+    <div class="app-container">
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-area">
+                    <img src="src/icons/icon-512x512.png" alt="Logo" class="header-logo">
+                    <div>
+                        <h1 class="header-title">Lista 2026</h1>
+                        <p class="header-user" id="user-nome">Carregando...</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="btn-dark-mode" class="icon-btn" title="Modo escuro">
+                        🌙
+                    </button>
+                    <button id="btn-logout" class="icon-btn logout-btn" title="Sair">
+                        🚪
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main class="app-main">
+            <!-- STATS BAR -->
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <span class="stat-value" id="total-itens">0</span>
+                    <span class="stat-label">itens totais</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="itens-pendentes">0</span>
+                    <span class="stat-label">pendentes</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="itens-concluidos">0</span>
+                    <span class="stat-label">concluídos</span>
+                </div>
+            </div>
+
+            <!-- ADD ITEM FORM -->
+            <div class="add-item-section">
+                <div class="input-row">
+                    <input type="text" id="item-nome" placeholder="Digite o item..." autocomplete="off">
+                    <select id="item-categoria">
+                        <option value="alimentos">🍎 Alimentos</option>
+                        <option value="limpeza">🧹 Limpeza</option>
+                        <option value="higiene">🧴 Higiene</option>
+                        <option value="bebidas">🥤 Bebidas</option>
+                        <option value="outros">📦 Outros</option>
+                    </select>
+                    <button id="btn-adicionar" class="btn-primary">
+                        <span>+ Adicionar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- CATEGORY FILTER -->
+            <div class="filter-section">
+                <button class="filter-chip active" data-categoria="todos">📋 Todos</button>
+                <button class="filter-chip" data-categoria="alimentos">🍎 Alimentos</button>
+                <button class="filter-chip" data-categoria="limpeza">🧹 Limpeza</button>
+                <button class="filter-chip" data-categoria="higiene">🧴 Higiene</button>
+                <button class="filter-chip" data-categoria="bebidas">🥤 Bebidas</button>
+                <button class="filter-chip" data-categoria="outros">📦 Outros</button>
+            </div>
+
+            <!-- ITEMS LIST -->
+            <div class="list-container">
+                <div class="list-header">
+                    <h3>Sua lista de compras</h3>
+                    <button id="btn-limpar-concluidos" class="text-btn">Limpar concluídos</button>
+                </div>
+                <ul id="lista" class="items-list"></ul>
+                <div id="empty-state" class="empty-state hidden">
+                    <div class="empty-icon">🛒</div>
+                    <h3>Sua lista está vazia</h3>
+                    <p>Adicione itens para começar suas compras</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast hidden">
+        <span class="toast-icon"></span>
+        <span class="toast-message"></span>
+    </div>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="spinner-large"></div>
     </div>
 
     <script type="module" src="app.js"></script>
@@ -23,15 +111,10 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registrado com sucesso:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('Falha ao registrar o ServiceWorker:', error);
-                    });
+                    .then(registration => console.log('ServiceWorker registrado:', registration.scope))
+                    .catch(error => console.log('Falha no SW:', error));
             });
         }
     </script>
-    
 </body>
 </html>

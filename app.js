@@ -17,6 +17,8 @@ let darkMode = localStorage.getItem('darkMode') === 'true';
 
 function exibirToast(mensagem, tipo = 'success') {
     const toast = document.getElementById('toast');
+    if (!toast) return;
+    
     const toastIcon = toast.querySelector('.toast-icon');
     const toastMessage = toast.querySelector('.toast-message');
     
@@ -24,8 +26,8 @@ function exibirToast(mensagem, tipo = 'success') {
     toast.classList.add(tipo);
     
     const icons = { success: '✅', error: '❌', info: 'ℹ️' };
-    toastIcon.textContent = icons[tipo] || icons.info;
-    toastMessage.textContent = mensagem;
+    if (toastIcon) toastIcon.textContent = icons[tipo] || icons.info;
+    if (toastMessage) toastMessage.textContent = mensagem;
     
     toast.classList.remove('hidden');
     
@@ -36,20 +38,23 @@ function exibirToast(mensagem, tipo = 'success') {
 
 function mostrarLoading(mostrar) {
     const overlay = document.getElementById('loading-overlay');
-    if (mostrar) {
-        overlay.classList.remove('hidden');
-    } else {
-        overlay.classList.add('hidden');
+    if (overlay) {
+        if (mostrar) {
+            overlay.classList.remove('hidden');
+        } else {
+            overlay.classList.add('hidden');
+        }
     }
 }
 
 function salvarItems() {
     if (!currentUser) return;
     
-    // Organizar items por usuário
     const allData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     allData[currentUser.id] = items;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+    
+    console.log('Itens salvos:', items.length);
 }
 
 function carregarItems() {
@@ -57,6 +62,7 @@ function carregarItems() {
     
     const allData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     items = allData[currentUser.id] || [];
+    console.log('Itens carregados:', items.length);
     return items;
 }
 
@@ -67,6 +73,12 @@ function carregarItems() {
 function adicionarItem() {
     const nomeInput = document.getElementById('item-nome');
     const categoriaSelect = document.getElementById('item-categoria');
+    
+    if (!nomeInput || !categoriaSelect) {
+        console.error('Elementos não encontrados');
+        return;
+    }
+    
     const nome = nomeInput.value.trim();
     const categoria = categoriaSelect.value;
     
@@ -108,8 +120,12 @@ function toggleItem(id) {
 
 function deletarItem(id) {
     const item = items.find(i => i.id === parseInt(id));
+    if (!item) return;
+    
     if (confirm(`Remover "${item.nome}" da lista?`)) {
         items = items.filter(i => i.id !== parseInt(id));
+        // Reordenar os itens restantes
+        items.forEach((item, idx) => { item.ordem = idx; });
         salvarItems();
         exibirToast('Item removido', 'success');
         renderizarLista();
@@ -125,6 +141,8 @@ function limparConcluidos() {
     
     if (confirm(`Remover ${concluidos.length} item(ns) concluído(s)?`)) {
         items = items.filter(i => !i.concluido);
+        // Reordenar os itens restantes
+        items.forEach((item, idx) => { item.ordem = idx; });
         salvarItems();
         exibirToast(`${concluidos.length} item(ns) removido(s)`, 'success');
         renderizarLista();
@@ -136,9 +154,13 @@ function atualizarEstatisticas() {
     const pendentes = items.filter(i => !i.concluido).length;
     const concluidos = items.filter(i => i.concluido).length;
     
-    document.getElementById('total-itens').textContent = total;
-    document.getElementById('itens-pendentes').textContent = pendentes;
-    document.getElementById('itens-concluidos').textContent = concluidos;
+    const totalEl = document.getElementById('total-itens');
+    const pendentesEl = document.getElementById('itens-pendentes');
+    const concluidosEl = document.getElementById('itens-concluidos');
+    
+    if (totalEl) totalEl.textContent = total;
+    if (pendentesEl) pendentesEl.textContent = pendentes;
+    if (concluidosEl) concluidosEl.textContent = concluidos;
 }
 
 function getIconCategoria(categoria) {
@@ -152,11 +174,19 @@ function getIconCategoria(categoria) {
     return icons[categoria] || '📦';
 }
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 function renderizarLista() {
     const listaUl = document.getElementById('lista');
     const emptyState = document.getElementById('empty-state');
     
-    let itemsFiltrados = items;
+    if (!listaUl || !emptyState) return;
+    
+    let itemsFiltrados = [...items];
     if (currentFilter !== 'todos') {
         itemsFiltrados = items.filter(i => i.categoria === currentFilter);
     }
@@ -198,12 +228,6 @@ function renderizarLista() {
     adicionarDragAndDrop();
 }
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
 // ============================================
 // DRAG AND DROP
 // ============================================
@@ -211,9 +235,14 @@ function escapeHtml(text) {
 let draggedItemId = null;
 
 function adicionarDragAndDrop() {
-    const items = document.querySelectorAll('.list-item');
+    const listItems = document.querySelectorAll('.list-item');
     
-    items.forEach(item => {
+    listItems.forEach(item => {
+        item.removeEventListener('dragstart', handleDragStart);
+        item.removeEventListener('dragover', handleDragOver);
+        item.removeEventListener('drop', handleDrop);
+        item.removeEventListener('dragend', handleDragEnd);
+        
         item.addEventListener('dragstart', handleDragStart);
         item.addEventListener('dragover', handleDragOver);
         item.addEventListener('drop', handleDrop);
@@ -222,8 +251,11 @@ function adicionarDragAndDrop() {
 }
 
 function handleDragStart(e) {
-    draggedItemId = parseInt(e.target.closest('.list-item').dataset.id);
-    e.target.closest('.list-item').classList.add('dragging');
+    const target = e.target.closest('.list-item');
+    if (!target) return;
+    
+    draggedItemId = parseInt(target.dataset.id);
+    target.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
 }
 
@@ -245,11 +277,9 @@ function handleDrop(e) {
     
     if (draggedIndex === -1 || targetIndex === -1) return;
     
-    // Reordenar
     const [draggedItem] = items.splice(draggedIndex, 1);
     items.splice(targetIndex, 0, draggedItem);
     
-    // Atualizar ordem
     items.forEach((item, idx) => { item.ordem = idx; });
     
     salvarItems();
@@ -258,7 +288,8 @@ function handleDrop(e) {
 }
 
 function handleDragEnd(e) {
-    e.target.closest('.list-item')?.classList.remove('dragging');
+    const target = e.target.closest('.list-item');
+    if (target) target.classList.remove('dragging');
     draggedItemId = null;
 }
 
@@ -288,17 +319,20 @@ function toggleDarkMode() {
     
     if (darkMode) {
         document.body.setAttribute('data-theme', 'dark');
-        document.getElementById('btn-dark-mode').textContent = '☀️';
+        const btn = document.getElementById('btn-dark-mode');
+        if (btn) btn.textContent = '☀️';
     } else {
         document.body.removeAttribute('data-theme');
-        document.getElementById('btn-dark-mode').textContent = '🌙';
+        const btn = document.getElementById('btn-dark-mode');
+        if (btn) btn.textContent = '🌙';
     }
 }
 
 function initDarkMode() {
     if (darkMode) {
         document.body.setAttribute('data-theme', 'dark');
-        document.getElementById('btn-dark-mode').textContent = '☀️';
+        const btn = document.getElementById('btn-dark-mode');
+        if (btn) btn.textContent = '☀️';
     }
 }
 
@@ -317,30 +351,55 @@ function handleLogout() {
 // ============================================
 
 function init() {
+    console.log('Inicializando app...');
+    
     // Verificar sessão
     currentUser = getSessaoAtiva();
     
     if (!currentUser) {
+        console.log('Usuário não autenticado, redirecionando...');
         window.location.href = 'login.html';
         return;
     }
     
+    console.log('Usuário logado:', currentUser);
+    
     // Exibir nome do usuário
-    document.getElementById('user-nome').textContent = 
-        currentUser.isGuest ? 'Modo Demo 🎮' : `Olá, ${currentUser.nome}`;
+    const userNomeEl = document.getElementById('user-nome');
+    if (userNomeEl) {
+        userNomeEl.textContent = currentUser.isGuest ? 'Modo Demo 🎮' : `Olá, ${currentUser.nome}`;
+    }
     
     // Carregar dados
     carregarItems();
     
     // Configurar eventos
-    document.getElementById('btn-adicionar').addEventListener('click', adicionarItem);
-    document.getElementById('btn-limpar-concluidos').addEventListener('click', limparConcluidos);
-    document.getElementById('btn-logout').addEventListener('click', handleLogout);
-    document.getElementById('btn-dark-mode').addEventListener('click', toggleDarkMode);
+    const btnAdicionar = document.getElementById('btn-adicionar');
+    if (btnAdicionar) {
+        btnAdicionar.addEventListener('click', adicionarItem);
+    }
     
-    document.getElementById('item-nome').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') adicionarItem();
-    });
+    const btnLimpar = document.getElementById('btn-limpar-concluidos');
+    if (btnLimpar) {
+        btnLimpar.addEventListener('click', limparConcluidos);
+    }
+    
+    const btnLogout = document.getElementById('btn-logout');
+    if (btnLogout) {
+        btnLogout.addEventListener('click', handleLogout);
+    }
+    
+    const btnDarkMode = document.getElementById('btn-dark-mode');
+    if (btnDarkMode) {
+        btnDarkMode.addEventListener('click', toggleDarkMode);
+    }
+    
+    const itemNomeInput = document.getElementById('item-nome');
+    if (itemNomeInput) {
+        itemNomeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') adicionarItem();
+        });
+    }
     
     // Configurar filtros
     configurarFiltros();
@@ -351,11 +410,18 @@ function init() {
     // Renderizar lista
     renderizarLista();
     
+    console.log('App inicializado com sucesso!');
+    
     // Exportar funções globalmente
     window.toggleItem = toggleItem;
     window.deletarItem = deletarItem;
     window.limparConcluidos = limparConcluidos;
+    window.adicionarItem = adicionarItem;
 }
 
-// Iniciar aplicação
-document.addEventListener('DOMContentLoaded', init);
+// Iniciar aplicação quando o DOM estiver pronto
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}

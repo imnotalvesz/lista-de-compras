@@ -34,30 +34,20 @@ function initMockData() {
 
 function exibirToast(mensagem, tipo = 'success') {
     const toast = document.getElementById('toast');
+    if (!toast) return;
+    
     const toastIcon = toast.querySelector('.toast-icon');
     const toastMessage = toast.querySelector('.toast-message');
     
-    // Remover classes anteriores
-    toast.classList.remove('success', 'error', 'hidden');
-    
-    // Adicionar classe do tipo
+    toast.classList.remove('success', 'error', 'info', 'hidden');
     toast.classList.add(tipo);
     
-    // Definir ícone
-    const icons = {
-        success: '✅',
-        error: '❌',
-        info: 'ℹ️'
-    };
-    toastIcon.textContent = icons[tipo] || icons.info;
+    const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+    if (toastIcon) toastIcon.textContent = icons[tipo] || icons.info;
+    if (toastMessage) toastMessage.textContent = mensagem;
     
-    // Definir mensagem
-    toastMessage.textContent = mensagem;
-    
-    // Mostrar toast
     toast.classList.remove('hidden');
     
-    // Esconder após 3 segundos
     setTimeout(() => {
         toast.classList.add('hidden');
     }, 3000);
@@ -92,25 +82,23 @@ function criarSessao(usuario, lembrar = false) {
         nome: usuario.nome,
         email: usuario.email,
         timestamp: Date.now(),
-        lembrar: lembrar
+        lembrar: lembrar,
+        isGuest: false
     };
     
     const duracao = lembrar ? SESSION_DURATION.REMEMBER : SESSION_DURATION.TEMP;
     sessao.expiraEm = Date.now() + duracao;
     
-    localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(sessao));
-    
-    // Se não for lembrar, usar sessionStorage como fallback
-    if (!lembrar) {
+    if (lembrar) {
+        localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(sessao));
+        sessionStorage.removeItem(STORAGE_KEYS.SESSION);
+    } else {
         sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(sessao));
         localStorage.removeItem(STORAGE_KEYS.SESSION);
-    } else {
-        sessionStorage.removeItem(STORAGE_KEYS.SESSION);
     }
 }
 
 function verificarSessao() {
-    // Tentar recuperar sessão do localStorage (lembrar) ou sessionStorage (temporária)
     let sessao = localStorage.getItem(STORAGE_KEYS.SESSION);
     if (!sessao) {
         sessao = sessionStorage.getItem(STORAGE_KEYS.SESSION);
@@ -121,7 +109,6 @@ function verificarSessao() {
     try {
         const dados = JSON.parse(sessao);
         
-        // Verificar se expirou
         if (Date.now() > dados.expiraEm) {
             localStorage.removeItem(STORAGE_KEYS.SESSION);
             sessionStorage.removeItem(STORAGE_KEYS.SESSION);
@@ -143,13 +130,12 @@ function redirecionarParaLista() {
 // ============================================
 
 async function handleLogin(event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     
-    const email = document.getElementById('email').value.trim();
-    const senha = document.getElementById('senha').value;
-    const lembrar = document.getElementById('lembrar-me').checked;
+    const email = document.getElementById('email')?.value.trim();
+    const senha = document.getElementById('senha')?.value;
+    const lembrar = document.getElementById('lembrar-me')?.checked || false;
     
-    // Validações
     if (!email || !senha) {
         exibirToast('Preencha todos os campos', 'error');
         return;
@@ -160,14 +146,11 @@ async function handleLogin(event) {
         return;
     }
     
-    // Mostrar spinner
     mostrarSpinner('btn-login', true);
     
-    // Simular delay de rede
     await new Promise(resolve => setTimeout(resolve, 800));
     
     try {
-        // Buscar usuário no mock
         const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
         const usuario = users.find(u => u.email === email && u.senha === senha);
         
@@ -177,12 +160,9 @@ async function handleLogin(event) {
             return;
         }
         
-        // Criar sessão
         criarSessao(usuario, lembrar);
-        
         exibirToast(`Bem-vindo(a) de volta, ${usuario.nome}! 🎉`, 'success');
         
-        // Redirecionar após pequeno delay
         setTimeout(() => {
             redirecionarParaLista();
         }, 500);
@@ -195,14 +175,13 @@ async function handleLogin(event) {
 }
 
 async function handleCadastro(event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     
-    const nome = document.getElementById('cadastro-nome').value.trim();
-    const email = document.getElementById('cadastro-email').value.trim();
-    const senha = document.getElementById('cadastro-senha').value;
-    const confirmar = document.getElementById('cadastro-confirmar').value;
+    const nome = document.getElementById('cadastro-nome')?.value.trim();
+    const email = document.getElementById('cadastro-email')?.value.trim();
+    const senha = document.getElementById('cadastro-senha')?.value;
+    const confirmar = document.getElementById('cadastro-confirmar')?.value;
     
-    // Validações
     if (!nome || !email || !senha || !confirmar) {
         exibirToast('Preencha todos os campos', 'error');
         return;
@@ -223,23 +202,19 @@ async function handleCadastro(event) {
         return;
     }
     
-    // Mostrar spinner
     mostrarSpinner('btn-cadastrar', true);
     
-    // Simular delay de rede
     await new Promise(resolve => setTimeout(resolve, 800));
     
     try {
         const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
         
-        // Verificar se email já existe
         if (users.find(u => u.email === email)) {
             exibirToast('Este email já está cadastrado', 'error');
             mostrarSpinner('btn-cadastrar', false);
             return;
         }
         
-        // Criar novo usuário
         const novoUsuario = {
             id: Date.now().toString(),
             nome: nome,
@@ -253,13 +228,15 @@ async function handleCadastro(event) {
         
         exibirToast('Conta criada com sucesso! 🎉 Faça login para continuar.', 'success');
         
-        // Fechar modal e limpar formulário
         fecharModalCadastro();
-        document.getElementById('cadastro-form').reset();
+        if (document.getElementById('cadastro-form')) {
+            document.getElementById('cadastro-form').reset();
+        }
         
-        // Preencher email no formulário de login
-        document.getElementById('email').value = email;
-        document.getElementById('senha').focus();
+        const emailInput = document.getElementById('email');
+        if (emailInput) emailInput.value = email;
+        const senhaInput = document.getElementById('senha');
+        if (senhaInput) senhaInput.focus();
         
     } catch (error) {
         console.error('Erro no cadastro:', error);
@@ -270,7 +247,6 @@ async function handleCadastro(event) {
 }
 
 function modoConvidado() {
-    // Criar sessão de convidado
     const sessaoConvidado = {
         userId: 'guest_' + Date.now(),
         nome: 'Convidado',
@@ -285,7 +261,6 @@ function modoConvidado() {
     
     exibirToast('Modo demonstração ativado! Dados salvos apenas neste navegador.', 'info');
     
-    // Redirecionar após pequeno delay
     setTimeout(() => {
         redirecionarParaLista();
     }, 500);
@@ -297,40 +272,21 @@ function modoConvidado() {
 
 function abrirModalCadastro() {
     const modal = document.getElementById('modal-cadastro');
-    modal.classList.add('show');
-    
-    // Prevenir scroll do body
-    document.body.style.overflow = 'hidden';
-    
-    // Limpar formulário
-    document.getElementById('cadastro-form').reset();
+    if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        const form = document.getElementById('cadastro-form');
+        if (form) form.reset();
+    }
 }
 
 function fecharModalCadastro() {
     const modal = document.getElementById('modal-cadastro');
-    modal.classList.remove('show');
-    
-    // Restaurar scroll
-    document.body.style.overflow = '';
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
 }
-
-// Fechar modal ao clicar fora
-document.addEventListener('click', (event) => {
-    const modal = document.getElementById('modal-cadastro');
-    if (event.target === modal) {
-        fecharModalCadastro();
-    }
-});
-
-// Fechar modal com ESC
-document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-        const modal = document.getElementById('modal-cadastro');
-        if (modal.classList.contains('show')) {
-            fecharModalCadastro();
-        }
-    }
-});
 
 // ============================================
 // FUNÇÃO PARA RECUPERAR SESSÃO (usada no index.html)
@@ -343,7 +299,6 @@ function getSessaoAtiva() {
         return null;
     }
     
-    // Se for convidado, retornar dados específicos
     if (sessao.isGuest) {
         return {
             id: sessao.userId,
@@ -362,54 +317,86 @@ function getSessaoAtiva() {
 }
 
 function logout() {
-    // Limpar sessões
     localStorage.removeItem(STORAGE_KEYS.SESSION);
     sessionStorage.removeItem(STORAGE_KEYS.SESSION);
-    
     exibirToast('Logout realizado com sucesso!', 'success');
     
-    // Redirecionar para login
     setTimeout(() => {
         window.location.href = 'login.html';
     }, 500);
 }
 
 // ============================================
+// EXPORTAÇÕES (para uso em outros módulos)
+// ============================================
+
+// Exportações para módulos ES6
+export { 
+    getSessaoAtiva, 
+    logout, 
+    handleLogin, 
+    handleCadastro, 
+    abrirModalCadastro, 
+    fecharModalCadastro, 
+    modoConvidado 
+};
+
+// Expor funções globalmente (para onclick nos botões HTML)
+if (typeof window !== 'undefined') {
+    window.handleLogin = handleLogin;
+    window.handleCadastro = handleCadastro;
+    window.abrirModalCadastro = abrirModalCadastro;
+    window.fecharModalCadastro = fecharModalCadastro;
+    window.modoConvidado = modoConvidado;
+    window.logout = logout;
+    window.getSessaoAtiva = getSessaoAtiva;
+}
+
+// ============================================
 // INICIALIZAÇÃO
 // ============================================
 
-// Inicializar dados mock
 initMockData();
 
-// Verificar se já está logado (se tentar acessar login com sessão ativa)
-document.addEventListener('DOMContentLoaded', () => {
-    const sessao = verificarSessao();
-    if (sessao && window.location.pathname.includes('login.html')) {
-        // Se já está logado, redirecionar para a lista
-        redirecionarParaLista();
-    }
-    
-    // Adicionar evento de submit ao formulário de cadastro
-    const cadastroForm = document.getElementById('cadastro-form');
-    if (cadastroForm) {
-        cadastroForm.addEventListener('submit', handleCadastro);
-    }
-    
-    // Adicionar evento para "Esqueci minha senha"
-    const esqueciLink = document.getElementById('esqueci-senha');
-    if (esqueciLink) {
-        esqueciLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            exibirToast('Funcionalidade em desenvolvimento. Contate o suporte.', 'info');
+// Verificar sessão ativa na página de login
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+        const sessao = verificarSessao();
+        if (sessao && window.location.pathname.includes('login.html')) {
+            redirecionarParaLista();
+        }
+        
+        const cadastroForm = document.getElementById('cadastro-form');
+        if (cadastroForm) {
+            cadastroForm.addEventListener('submit', handleCadastro);
+        }
+        
+        const esqueciLink = document.getElementById('esqueci-senha');
+        if (esqueciLink) {
+            esqueciLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                exibirToast('Funcionalidade em desenvolvimento. Contate o suporte.', 'info');
+            });
+        }
+        
+        // Fechar modal ao clicar fora
+        const modal = document.getElementById('modal-cadastro');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    fecharModalCadastro();
+                }
+            });
+        }
+        
+        // Fechar modal com ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('modal-cadastro');
+                if (modal && modal.classList.contains('show')) {
+                    fecharModalCadastro();
+                }
+            }
         });
-    }
-});
-
-// Expor funções globalmente (para onclick nos botões)
-window.handleLogin = handleLogin;
-window.handleCadastro = handleCadastro;
-window.abrirModalCadastro = abrirModalCadastro;
-window.fecharModalCadastro = fecharModalCadastro;
-window.modoConvidado = modoConvidado;
-window.logout = logout;
-window.getSessaoAtiva = getSessaoAtiva;
+    });
+}

@@ -2,23 +2,27 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Lista 2026 · Login</title>
     <link rel="shortcut icon" href="src/img/favicon.ico" type="image/x-icon">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="src/css/login.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
     <div class="login-container">
         <div class="login-card">
-            <img src="src/icons/icon-512x512.png" alt="Logo App Lista" class="app-logo">
+            <div class="logo-wrapper">
+                <img src="src/icons/icon-512x512.png" alt="Logo Lista 2026" class="app-logo">
+            </div>
             
             <div class="text-header">
                 <h1 class="app-title">Lista 2026</h1>
                 <p class="app-subtitle">Organize suas compras em equipe</p>
             </div>
 
-            <form id="login-form" onsubmit="event.preventDefault(); login();">
+            <form id="login-form" onsubmit="handleLogin(event)">
                 <div class="input-group">
                     <span class="input-icon">📧</span>
                     <input type="email" id="email" placeholder="seu@email.com" autocomplete="email" required>
@@ -29,14 +33,77 @@
                     <input type="password" id="senha" placeholder="Senha" autocomplete="current-password" required>
                 </div>
 
+                <div class="options-row">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="lembrar-me">
+                        <span class="checkmark"></span>
+                        Lembrar-me
+                    </label>
+                    <a href="#" id="esqueci-senha" class="forgot-link">Esqueceu a senha?</a>
+                </div>
+
                 <div class="action-buttons">
-                    <button type="submit" class="btn-primary">Entrar</button>
-                    <button type="button" class="btn-secondary" onclick="cadastro()">Criar conta gratuita</button>
+                    <button type="submit" id="btn-login" class="btn-primary">
+                        <span class="btn-text">Entrar</span>
+                        <div class="spinner hidden"></div>
+                    </button>
+                    
+                    <button type="button" onclick="abrirModalCadastro()" class="btn-secondary">
+                        Criar conta gratuita
+                    </button>
+                    
+                    <button type="button" onclick="modoConvidado()" class="btn-demo">
+                        🎮 Experimentar demo
+                        <span class="demo-badge">sem cadastro</span>
+                    </button>
                 </div>
             </form>
             
-            <p class="legal-note">Ao entrar, você concorda com nossos termos.</p>
+            <p class="legal-note">
+                Ao continuar, você concorda com nossos 
+                <a href="#">Termos de uso</a> e <a href="#">Política de privacidade</a>
+            </p>
+
+            <div class="version-tag">v2.0.0</div>
         </div>
+    </div>
+
+    <!-- MODAL DE CADASTRO -->
+    <div id="modal-cadastro" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Criar conta gratuita</h2>
+                <button class="modal-close" onclick="fecharModalCadastro()">&times;</button>
+            </div>
+            <form id="cadastro-form" onsubmit="handleCadastro(event)">
+                <div class="input-group">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="cadastro-nome" placeholder="Nome completo" required>
+                </div>
+                <div class="input-group">
+                    <span class="input-icon">📧</span>
+                    <input type="email" id="cadastro-email" placeholder="seu@email.com" required>
+                </div>
+                <div class="input-group">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="cadastro-senha" placeholder="Senha (mínimo 6 caracteres)" required>
+                </div>
+                <div class="input-group">
+                    <span class="input-icon">✓</span>
+                    <input type="password" id="cadastro-confirmar" placeholder="Confirmar senha" required>
+                </div>
+                <button type="submit" id="btn-cadastrar" class="btn-primary btn-full">
+                    <span class="btn-text">Cadastrar</span>
+                    <div class="spinner hidden"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast hidden">
+        <span class="toast-icon"></span>
+        <span class="toast-message"></span>
     </div>
 
     <script type="module" src="auth.js"></script>
@@ -45,8 +112,8 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => console.log('SW registrado'))
-                    .catch(error => console.log('Falha no SW', error));
+                    .then(registration => console.log('SW registrado:', registration.scope))
+                    .catch(error => console.log('Falha no SW:', error));
             });
         }
     </script>
